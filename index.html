@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="brand">Grand Estate Connect</title>
+  
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- FontAwesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toast" class="toast">
+    <i class="fa-solid fa-circle-check"></i>
+    <span id="toast-text">Success!</span>
+  </div>
+
+  <!-- ==================== PORTAL SHELL ==================== -->
+  <div id="app-shell">
+
+    <!-- 1. LOGIN PORTAL VIEW -->
+    <div id="view-login" class="login-container" style="display: none;">
+      <div class="login-aside">
+        <div class="login-aside-brand">
+          <i class="fa-solid fa-house-chimney-crack"></i>
+          <span data-i18n="brand">Grand Estate Connect</span>
+        </div>
+        <div class="login-aside-content">
+          <h1 data-i18n="login_title">Sign In to Your Workspace</h1>
+          <p data-i18n="login_subtitle">Manage connections, requests, and documents in one premium space.</p>
+        </div>
+        <div class="login-aside-footer">
+          &copy; 2026 Grand Estate Connect Co., Ltd. All rights reserved.
+        </div>
+      </div>
+      <div class="login-main">
+        <div class="login-main-lang">
+          <button class="lang-btn toggle-lang" data-lang="th">ภาษาไทย</button>
+        </div>
+        <div class="login-card">
+          <div class="login-tabs">
+            <div class="login-tab active" id="tab-login-sale" data-role="sale" data-i18n="sales_portal">Sales Portal</div>
+            <div class="login-tab" id="tab-login-agency" data-role="agency" data-i18n="agency_portal">Agency Portal</div>
+          </div>
+          
+          <form id="login-form">
+            <input type="hidden" id="login-role" value="sale">
+            <div class="form-group">
+              <label for="username" data-i18n="username">Username</label>
+              <input type="text" id="username" class="form-control" required placeholder="Enter username">
+            </div>
+            <div class="form-group">
+              <label for="password" data-i18n="password">Password</label>
+              <input type="password" id="password" class="form-control" required placeholder="Enter password">
+            </div>
+            <div id="login-error" class="mb-4" style="color: var(--status-done-text); color: #e11d48; font-weight: 600; display: none;">
+              <!-- Handled in app.js -->
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" data-i18n="login">Log In</button>
+          </form>
+
+          <div class="login-demo-box">
+            <strong data-i18n="demo_credentials">Demo Accounts (Password is 'password')</strong>
+            <div>
+              <span data-i18n="sale_demo">Sales Demo</span>: 
+              <span class="login-demo-click" data-user="sale1">sale1</span>
+            </div>
+            <div class="mt-4">
+              <span data-i18n="agency_demo">Agency Demo</span>: 
+              <span class="login-demo-click" data-user="nexus_owner">nexus_owner</span> (Nexus Real Estate) | 
+              <span class="login-demo-click" data-user="prestige_owner">prestige_owner</span> (Prestige Property)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. SALES WORKSPACE VIEW -->
+    <div id="view-sale-layout" class="app-container" style="display: none;">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sale-sidebar">
+        <div class="sidebar-logo">
+          <i class="fa-solid fa-house-chimney-crack"></i>
+          <span data-i18n="brand">Grand Estate Connect</span>
+        </div>
+        <ul class="sidebar-menu">
+          <li class="active" data-page="sale-overview">
+            <a href="#sale-overview">
+              <i class="fa-solid fa-chart-pie"></i>
+              <span data-i18n="nav_overview">Dashboard</span>
+            </a>
+          </li>
+          <li data-page="sale-agencies">
+            <a href="#sale-agencies">
+              <i class="fa-solid fa-building-user"></i>
+              <span data-i18n="nav_agencies">Agencies & Agents</span>
+            </a>
+          </li>
+          <li data-page="sale-requests">
+            <a href="#sale-requests">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+              <span data-i18n="nav_requests">Requests & Activities</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <span data-i18n="sales_portal">Sales Portal</span>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-nav">
+          <div class="nav-left">
+            <button class="menu-toggle" id="sale-menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <h2 id="sale-layout-title" data-i18n="sales_portal">Sales Portal</h2>
+          </div>
+          <div class="nav-right">
+            <button class="lang-btn toggle-lang" data-lang="th">ภาษาไทย</button>
+            <div class="user-info">
+              <div class="user-avatar" id="sale-user-avatar">S</div>
+              <span id="sale-user-name">Sarah Jenkins</span>
+            </div>
+            <button class="btn btn-secondary btn-sm logout-btn" data-i18n="logout">Log Out</button>
+          </div>
+        </header>
+
+        <!-- Pages Container -->
+        <main class="page-container">
+
+          <!-- 2.1 SALES OVERVIEW PAGE -->
+          <div id="sale-overview-page" class="sale-page">
+            <div class="page-header">
+              <div class="page-title">
+                <h2 data-i18n="nav_overview">Dashboard</h2>
+                <p data-i18n="login_subtitle">Manage connections, requests, and documents in one premium space.</p>
+              </div>
+            </div>
+
+            <!-- Stats Widgets -->
+            <div class="dashboard-grid">
+              <div class="stat-card">
+                <div class="stat-icon total"><i class="fa-solid fa-folder-open"></i></div>
+                <div class="stat-info">
+                  <div class="stat-value" id="sale-stat-total">0</div>
+                  <div class="stat-label" data-i18n="total_requests">Total Requests</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon process"><i class="fa-solid fa-rotate"></i></div>
+                <div class="stat-info">
+                  <div class="stat-value" id="sale-stat-process">0</div>
+                  <div class="stat-label" data-i18n="status_in_process">In Process</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon pending"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div class="stat-info">
+                  <div class="stat-value" id="sale-stat-pending">0</div>
+                  <div class="stat-label" data-i18n="status_pending">Pending</div>
+                </div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-icon done"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="stat-info">
+                  <div class="stat-value" id="sale-stat-done">0</div>
+                  <div class="stat-label" data-i18n="status_done">Done</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activities Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 data-i18n="recent_activities">Recent Activities</h3>
+                <button class="btn btn-primary btn-sm btn-create-request-modal">
+                  <i class="fa-solid fa-plus"></i> <span data-i18n="create_request">Create Request</span>
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table-custom">
+                    <thead>
+                      <tr>
+                        <th data-i18n="created_date">Created Date</th>
+                        <th data-i18n="act_type">Activity Type</th>
+                        <th data-i18n="project">Project Name</th>
+                        <th data-i18n="agent_agency">Assigned Agent/Agency</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="sale-recent-requests-tbody">
+                      <!-- Rendered by app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.2 SALES AGENCIES PAGE -->
+          <div id="sale-agencies-page" class="sale-page" style="display: none;">
+            
+            <!-- List View -->
+            <div id="agencies-list-view">
+              <div class="page-header">
+                <div class="page-title">
+                  <h2 data-i18n="agency_list">Agency Directory</h2>
+                  <p>Create, manage, and configure your property agency partners.</p>
+                </div>
+                <button class="btn btn-primary" id="btn-add-agency-modal">
+                  <i class="fa-solid fa-plus"></i> <span data-i18n="add_agency">Add New Agency</span>
+                </button>
+              </div>
+
+              <div class="card">
+                <div class="card-body">
+                  <div class="filter-bar">
+                    <div class="search-wrapper">
+                      <i class="fa-solid fa-magnifying-glass"></i>
+                      <input type="text" id="agency-search-input" class="form-control" placeholder="Search agencies...">
+                    </div>
+                  </div>
+                  <div class="table-responsive">
+                    <table class="table-custom">
+                      <thead>
+                        <tr>
+                          <th data-i18n="agency_name">Agency Name</th>
+                          <th data-i18n="phone">Phone Number</th>
+                          <th data-i18n="email">Email Address</th>
+                          <th data-i18n="address">Address</th>
+                          <th data-i18n="actions">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="agencies-tbody">
+                        <!-- Rendered by app.js -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Subview: Agents Directory for selected Agency -->
+            <div id="agency-detail-view" style="display: none;">
+              <div class="subview-header">
+                <button class="btn btn-secondary btn-sm" id="btn-back-agencies">
+                  <i class="fa-solid fa-arrow-left"></i> <span data-i18n="back_to_agencies">Back</span>
+                </button>
+                <div class="page-title">
+                  <h2 id="subview-agency-title">Nexus Real Estate</h2>
+                  <p><span data-i18n="agent_list">Agent Roster</span> | <span id="subview-agency-contact-info">02-123-4567</span></p>
+                </div>
+              </div>
+
+              <div class="page-header mt-4">
+                <h3 data-i18n="agent_list">Agent Roster</h3>
+                <button class="btn btn-primary" id="btn-add-agent-modal">
+                  <i class="fa-solid fa-plus"></i> <span data-i18n="add_agent">Add New Agent</span>
+                </button>
+              </div>
+
+              <div class="card">
+                <div class="card-body">
+                  <div class="table-responsive">
+                    <table class="table-custom">
+                      <thead>
+                        <tr>
+                          <th data-i18n="agent_name">Agent Name</th>
+                          <th data-i18n="phone">Phone Number</th>
+                          <th data-i18n="email">Email Address</th>
+                          <th data-i18n="status">Status</th>
+                          <th data-i18n="actions">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="agents-tbody">
+                        <!-- Rendered by app.js -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- 2.3 SALES REQUESTS PAGE -->
+          <div id="sale-requests-page" class="sale-page" style="display: none;">
+            <div class="page-header">
+              <div class="page-title">
+                <h2 data-i18n="request_list">Request Management</h2>
+                <p>Monitor status, download attachments, and share links directly with agents.</p>
+              </div>
+              <button class="btn btn-primary btn-create-request-modal">
+                <i class="fa-solid fa-plus"></i> <span data-i18n="create_request">Create Request</span>
+              </button>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <!-- Filters -->
+                <div class="filter-bar">
+                  <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="request-search-input" class="form-control" placeholder="Search requests...">
+                  </div>
+                  <div class="filter-controls">
+                    <select id="filter-activity-type" class="form-control">
+                      <option value="" data-i18n="all">All Activities</option>
+                      <option value="price_list" data-i18n="price_list">Request PriceList</option>
+                      <option value="quotation" data-i18n="quotation">Request Quotation</option>
+                      <option value="brochure" data-i18n="brochure">Request Brochure</option>
+                      <option value="follow_up" data-i18n="follow_up">Follow up</option>
+                      <option value="call" data-i18n="call">Call</option>
+                      <option value="meeting" data-i18n="meeting">Meeting</option>
+                      <option value="other" data-i18n="other">Other Request</option>
+                    </select>
+                    <select id="filter-status" class="form-control">
+                      <option value="" data-i18n="all">All Statuses</option>
+                      <option value="In process" data-i18n="status_in_process">In Process</option>
+                      <option value="Pending" data-i18n="status_pending">Pending</option>
+                      <option value="Done" data-i18n="status_done">Done</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table-custom">
+                    <thead>
+                      <tr>
+                        <th data-i18n="created_date">Created Date</th>
+                        <th data-i18n="act_type">Activity Type</th>
+                        <th data-i18n="project">Project Name</th>
+                        <th data-i18n="agent_agency">Assigned Agent/Agency</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="requests-tbody">
+                      <!-- Rendered by app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- 3. AGENCY WORKSPACE VIEW -->
+    <div id="view-agency-layout" class="app-container" style="display: none;">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="agency-sidebar">
+        <div class="sidebar-logo">
+          <i class="fa-solid fa-house-chimney-crack"></i>
+          <span data-i18n="brand">Grand Estate Connect</span>
+        </div>
+        <ul class="sidebar-menu">
+          <li class="active" data-page="agency-requests">
+            <a href="#agency-requests">
+              <i class="fa-solid fa-envelope-open-text"></i>
+              <span data-i18n="agency_nav_requests">Incoming Requests</span>
+            </a>
+          </li>
+          <li data-page="agency-members">
+            <a href="#agency-members">
+              <i class="fa-solid fa-users-gear"></i>
+              <span data-i18n="agency_nav_members">Agency Members</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer">
+          <span id="agency-footer-name">Nexus Real Estate</span>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Top Navbar -->
+        <header class="top-nav">
+          <div class="nav-left">
+            <button class="menu-toggle" id="agency-menu-toggle"><i class="fa-solid fa-bars"></i></button>
+            <h2 id="agency-layout-title" data-i18n="agency_portal">Agency Portal</h2>
+          </div>
+          <div class="nav-right">
+            <button class="lang-btn toggle-lang" data-lang="th">ภาษาไทย</button>
+            <div class="user-info">
+              <div class="user-avatar" id="agency-user-avatar">N</div>
+              <span id="agency-user-name">Nexus Owner</span>
+            </div>
+            <button class="btn btn-secondary btn-sm logout-btn" data-i18n="logout">Log Out</button>
+          </div>
+        </header>
+
+        <!-- Pages Container -->
+        <main class="page-container">
+
+          <!-- 3.1 INCOMING REQUESTS PAGE -->
+          <div id="agency-requests-page" class="agency-page">
+            <div class="page-header">
+              <div class="page-title">
+                <h2 data-i18n="agency_nav_requests">Incoming Requests</h2>
+                <p>Access document links and requests sent by property sales staff.</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div class="filter-bar">
+                  <div class="search-wrapper">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="agency-request-search" class="form-control" placeholder="Search incoming requests...">
+                  </div>
+                  <div class="filter-controls">
+                    <select id="agency-filter-status" class="form-control">
+                      <option value="" data-i18n="all">All Statuses</option>
+                      <option value="In process" data-i18n="status_in_process">In Process</option>
+                      <option value="Pending" data-i18n="status_pending">Pending</option>
+                      <option value="Done" data-i18n="status_done">Done</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="table-custom">
+                    <thead>
+                      <tr>
+                        <th data-i18n="created_date">Created Date</th>
+                        <th data-i18n="act_type">Activity Type</th>
+                        <th data-i18n="project">Project Name</th>
+                        <th data-i18n="sender">Sales Agent</th>
+                        <th data-i18n="assigned_to">Assigned Agent</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agency-requests-tbody">
+                      <!-- Rendered by app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.2 AGENCY MEMBERS (AGENTS UNDER SUNGKAT) -->
+          <div id="agency-members-page" class="agency-page" style="display: none;">
+            <div class="page-header">
+              <div class="page-title">
+                <h2 data-i18n="agency_nav_members">Agency Members</h2>
+                <p>Manage list of sub-agents/members affiliated under your agency profile.</p>
+              </div>
+              <button class="btn btn-primary" id="btn-agency-add-member">
+                <i class="fa-solid fa-user-plus"></i> <span data-i18n="add_member">Add Member</span>
+              </button>
+            </div>
+
+            <div class="card">
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table-custom">
+                    <thead>
+                      <tr>
+                        <th data-i18n="member_name">Member Name</th>
+                        <th data-i18n="phone">Phone Number</th>
+                        <th data-i18n="email">Email Address</th>
+                        <th data-i18n="status">Status</th>
+                        <th data-i18n="actions">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="agency-members-tbody">
+                      <!-- Rendered by app.js -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- 4. DIRECT PUBLIC REQUEST VIEW (SHARING LINK) -->
+    <div id="view-public-request" class="public-layout" style="display: none;">
+      <nav class="public-navbar">
+        <div class="public-navbar-brand">
+          <i class="fa-solid fa-house-chimney-crack"></i>
+          <span data-i18n="brand">Grand Estate Connect</span>
+        </div>
+        <button class="lang-btn toggle-lang" data-lang="th">ภาษาไทย</button>
+      </nav>
+      
+      <div class="public-card-container">
+        <!-- Main Request Card -->
+        <div class="public-req-card">
+          <div class="public-req-header">
+            <h3 data-i18n="public_view_title">Activity Request Shared Document</h3>
+            <p data-i18n="public_view_desc">You have received a document request from the sales division. See details below.</p>
+          </div>
+          <div class="public-req-body">
+            <div id="public-content-box">
+              <!-- Rendered dynamically in app.js -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- MODAL 1: Create/Edit Request & Activity (Sales) -->
+  <div id="modal-request" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-request-title" data-i18n="create_request">Create Request & Activity</h3>
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="request-form">
+        <input type="hidden" id="req-id">
+        <div class="modal-body">
+          
+          <div class="form-group">
+            <label for="req-type" data-i18n="act_type">Activity Type</label>
+            <select id="req-type" class="form-control" required>
+              <option value="price_list" data-i18n="price_list">Request PriceList</option>
+              <option value="quotation" data-i18n="quotation">Request Quotation</option>
+              <option value="brochure" data-i18n="brochure">Request Brochure</option>
+              <option value="follow_up" data-i18n="follow_up">Follow up</option>
+              <option value="call" data-i18n="call">Call</option>
+              <option value="meeting" data-i18n="meeting">Meeting</option>
+              <option value="other" data-i18n="other">Other Request</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="req-project" data-i18n="project">Project Name</label>
+            <select id="req-project" class="form-control" required>
+              <!-- Populate dynamically in app.js -->
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="req-agency" data-i18n="select_agency">Select Agency</label>
+              <select id="req-agency" class="form-control" required>
+                <!-- Populate dynamically in app.js -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="req-agent" data-i18n="select_agent">Select Agent</label>
+              <select id="req-agent" class="form-control">
+                <!-- Populate dynamically in app.js -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="req-details" data-i18n="details">Details</label>
+            <textarea id="req-details" rows="3" class="form-control" required placeholder="Enter request details..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label data-i18n="attachment">Attachment (Optional)</label>
+            <div class="file-upload-wrapper">
+              <input type="file" id="req-file-input" style="display:none;" multiple>
+              <div class="file-upload-box" id="file-dropzone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <p data-i18n="attach_file">Attach Document</p>
+                <span>PDF, DOCX, PNG, JPG (Max 10MB)</span>
+              </div>
+              <div id="file-list-container" class="mt-4" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- Rendered dynamically in app.js -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-i18n="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" data-i18n="save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Create/Edit Agency (Sales) -->
+  <div id="modal-agency" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-agency-title" data-i18n="add_agency">Add New Agency</h3>
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="agency-form">
+        <input type="hidden" id="agency-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="agency-name" data-i18n="agency_name">Agency Name</label>
+            <input type="text" id="agency-name" class="form-control" required placeholder="Enter agency name">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="agency-phone" data-i18n="phone">Phone Number</label>
+              <input type="text" id="agency-phone" class="form-control" required placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+              <label for="agency-email" data-i18n="email">Email Address</label>
+              <input type="email" id="agency-email" class="form-control" required placeholder="Enter email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="agency-address" data-i18n="address">Address</label>
+            <textarea id="agency-address" rows="2" class="form-control" required placeholder="Enter address"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-i18n="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" data-i18n="save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: Create/Edit Agent (Sales & Agency) -->
+  <div id="modal-agent" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-agent-title" data-i18n="add_agent">Add New Agent</h3>
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="agent-form">
+        <input type="hidden" id="agent-id">
+        <input type="hidden" id="agent-agency-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="agent-name" data-i18n="agent_name">Agent Name</label>
+            <input type="text" id="agent-name" class="form-control" required placeholder="Enter agent name">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="agent-phone" data-i18n="phone">Phone Number</label>
+              <input type="text" id="agent-phone" class="form-control" required placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+              <label for="agent-email" data-i18n="email">Email Address</label>
+              <input type="email" id="agent-email" class="form-control" required placeholder="Enter email">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="agent-status" data-i18n="agent_status">Active Status</label>
+            <select id="agent-status" class="form-control">
+              <option value="true" data-i18n="active">Active</option>
+              <option value="false" data-i18n="inactive">Inactive</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary modal-close-btn" data-i18n="cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary" data-i18n="save">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Share Options (Sales) -->
+  <div id="modal-share" class="modal-overlay">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 data-i18n="share_request">Share Request</h3>
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p data-i18n="share_desc">Share this request link with the agent through the following channels:</p>
+        
+        <!-- Input containing generated link for easy selection -->
+        <div class="form-group mt-4">
+          <input type="text" id="share-link-input" class="form-control" readonly>
+        </div>
+
+        <div class="share-links-grid">
+          <button class="share-btn copy-btn" id="btn-share-copy">
+            <i class="fa-regular fa-copy"></i>
+            <span data-i18n="copy_link">Copy Link</span>
+          </button>
+          <button class="share-btn line-btn" id="btn-share-line">
+            <i class="fa-brands fa-line"></i>
+            <span>Line</span>
+          </button>
+          <button class="share-btn fb-btn" id="btn-share-facebook">
+            <i class="fa-brands fa-square-facebook"></i>
+            <span>Facebook</span>
+          </button>
+          <button class="share-btn wa-btn" id="btn-share-whatsapp">
+            <i class="fa-brands fa-square-whatsapp"></i>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary modal-close-btn" data-i18n="close">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: View Request Details (Agency) -->
+  <div id="modal-view-details" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-details-title" data-i18n="request_details">Request Details</h3>
+        <button class="modal-close"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div id="details-content-box">
+          <!-- Rendered dynamically in app.js -->
+        </div>
+      </div>
+      <div class="modal-footer" id="details-modal-footer">
+        <!-- Rendered dynamically in app.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
