@@ -80,6 +80,11 @@ a:hover {
 button, input, select, textarea {
   font-family: inherit;
   font-size: inherit;
+  touch-action: manipulation;
+}
+
+button, a, [role="button"], .login-tab, .bell-item, .action-btn, .share-btn {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* --- App Shell Layout --- */
@@ -637,11 +642,15 @@ button, input, select, textarea {
   height: 100%;
   background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  overflow-y: auto;
 }
 
 .modal-card {
@@ -652,16 +661,20 @@ button, input, select, textarea {
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--border-color);
   overflow: hidden;
-  transform: translateY(20px);
-  transition: transform 0.3s ease;
+  transform: translateY(24px) scale(0.98);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  opacity: 0;
+  margin: auto;
 }
 
 .modal-overlay.active {
   display: flex;
+  opacity: 1;
 }
 
 .modal-overlay.active .modal-card {
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
+  opacity: 1;
 }
 
 .modal-header {
@@ -1146,6 +1159,7 @@ button, input, select, textarea {
   gap: 4px;
   transition: background-color 0.2s ease;
   text-align: left;
+  cursor: pointer;
 }
 
 .bell-item:hover {
@@ -1174,7 +1188,7 @@ button, input, select, textarea {
 /* --- Responsive Adjustments --- */
 @media (max-width: 1024px) {
   .login-aside {
-    display: none; /* Hide beautiful aside on medium/small sizes to keep form clean */
+    display: none;
   }
   .login-main {
     width: 100%;
@@ -1185,6 +1199,7 @@ button, input, select, textarea {
 }
 
 @media (max-width: 768px) {
+  /* Sidebar — slide off-screen, toggle with .active */
   .sidebar {
     width: 240px;
     transform: translateX(-100%);
@@ -1211,22 +1226,73 @@ button, input, select, textarea {
     margin-left: 0;
   }
 
-  .page-container {
-    padding: 20px;
+  /* Navbar */
+  .top-nav {
+    padding: 0 16px;
+    height: 60px;
   }
 
+  .nav-right {
+    gap: 10px;
+  }
+
+  /* Hide username text — keep avatar */
+  #sale-user-name,
+  #agency-user-name {
+    display: none;
+  }
+
+  /* Compact logout to icon-only */
+  .logout-btn span[data-i18n="logout"],
+  .logout-btn {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+
+  /* Pages */
+  .page-container {
+    padding: 20px 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  /* Cards */
+  .card-header {
+    padding: 16px 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  /* Dashboard stats */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  /* Forms */
   .form-row {
     grid-template-columns: 1fr;
     gap: 16px;
   }
 
-  .top-nav {
-    padding: 0 20px;
-  }
-
+  /* Filters */
   .filter-bar {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
   }
 
   .search-wrapper {
@@ -1241,12 +1307,149 @@ button, input, select, textarea {
     flex-grow: 1;
   }
 
-  .share-links-grid {
-    grid-template-columns: repeat(2, 1fr);
+  /* Tables — increase touch row height */
+  .table-custom td {
+    padding: 10px 12px;
   }
-  
+
+  .table-custom th {
+    padding: 8px 12px;
+  }
+
+  /* Better touch targets for action buttons */
+  .action-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .btn-sm {
+    padding: 6px 12px;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    padding: 12px;
+    align-items: flex-end;
+  }
+
+  .modal-card {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    max-width: 100%;
+    margin: 0;
+  }
+
+  .modal-overlay.active .modal-card {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-body {
+    max-height: 65vh;
+    padding: 16px;
+  }
+
+  .modal-footer {
+    padding: 12px 16px;
+  }
+
+  .modal-header {
+    padding: 16px;
+  }
+
+  /* Share grid */
+  .share-links-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Bell dropdown — stay within viewport */
+  .bell-dropdown {
+    width: min(300px, calc(100vw - 32px));
+    right: -8px;
+  }
+
+  /* Public view */
   .public-detail-grid {
     grid-template-columns: 1fr;
     gap: 16px;
+  }
+
+  .public-req-body {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Extra small phones */
+  .top-nav {
+    height: 56px;
+  }
+
+  /* Hide language button to save space */
+  .top-nav .toggle-lang {
+    display: none;
+  }
+
+  /* Dashboard: single column on very small screens */
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .stat-info .stat-value {
+    font-size: 20px;
+  }
+
+  .stat-info .stat-label {
+    font-size: 11px;
+  }
+
+  .page-container {
+    padding: 16px 12px;
+  }
+
+  .page-title h2 {
+    font-size: 17px;
+  }
+
+  .card-body {
+    padding: 12px;
+  }
+
+  /* Share grid 2-column on tiny phones */
+  .share-links-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* Modal takes full height on tiny screens */
+  .modal-body {
+    max-height: 60vh;
+  }
+
+  .login-main {
+    padding: 24px 20px;
+  }
+
+  .public-req-body {
+    padding: 16px;
+  }
+
+  /* Public card full screen */
+  .public-card-container {
+    margin: 16px auto;
+    padding: 0 12px;
   }
 }
