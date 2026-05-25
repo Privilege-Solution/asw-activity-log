@@ -2,7 +2,7 @@
 const i18n = {
   en: {
     // General
-    brand: "Grand Estate Connect",
+    brand: "Agent Activity",
     sales_portal: "Sales Portal",
     agency_portal: "Agency Portal",
     login: "Log In",
@@ -93,6 +93,9 @@ const i18n = {
     share_line: "Share to Line",
     share_facebook: "Share to Facebook",
     share_whatsapp: "Share to WhatsApp",
+    share_email: "Email",
+    share_email_subject: "Activity Request Document",
+    share_email_body: "Please review the following activity request document:",
 
     // Activity Types List
     price_list: "Request PriceList",
@@ -135,7 +138,7 @@ const i18n = {
   },
   th: {
     // General
-    brand: "Grand Estate Connect",
+    brand: "Agent Activity",
     sales_portal: "พอร์ทัลพนักงานขาย",
     agency_portal: "พอร์ทัลเอเจนซี่",
     login: "เข้าสู่ระบบ",
@@ -226,6 +229,9 @@ const i18n = {
     share_line: "แชร์ไปยัง Line",
     share_facebook: "แชร์ไปยัง Facebook",
     share_whatsapp: "แชร์ไปยัง WhatsApp",
+    share_email: "อีเมล",
+    share_email_subject: "เอกสารคำขอกิจกรรม",
+    share_email_body: "กรุณาตรวจสอบเอกสารคำขอกิจกรรมต่อไปนี้:",
 
     // Activity Types List
     price_list: "ขอใบราคา (PriceList)",

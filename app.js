@@ -170,6 +170,9 @@ $(document).ready(function() {
     $('#agency-user-name').text(state.currentUser.name);
     $('#agency-user-avatar').text(state.currentUser.name.charAt(0));
     $('#agency-footer-name').text(displayAgencyName);
+
+    // Update notification bell badge count on load
+    updateNotificationBell();
   }
 
   // --- Toast Alerts ---
@@ -439,6 +442,9 @@ $(document).ready(function() {
         </tr>
       `);
     });
+
+    // Update notification bell badge count when requests are re-rendered/updated
+    updateNotificationBell();
   }
 
   // --- Agency Portal: Members List Render ---
@@ -639,6 +645,96 @@ $(document).ready(function() {
         `);
       });
     }
+  }
+
+  // --- Request Detail Modal (shared by bell items and table rows) ---
+  function openRequestDetailModal(id) {
+    const req = db.getRequest(id);
+    if (!req) return;
+
+    const project = db.getProject(req.projectId);
+    const projectName = project ? (state.lang === 'th' ? project.name_th : project.name_en) : '';
+    const agent = db.getAgent(req.agentId);
+    const agentName = agent ? agent.name : '-';
+
+    const statusBadgeClass = req.status === 'In process' ? 'badge-process' : (req.status === 'Pending' ? 'badge-pending' : 'badge-done');
+    const statusText = req.status === 'In process' ? i18n[state.lang].status_in_process : (req.status === 'Pending' ? i18n[state.lang].status_pending : i18n[state.lang].status_done);
+
+    const attachmentList = req.attachments || (req.attachment ? [req.attachment] : []);
+    const attachmentHtml = attachmentList.length === 0 ? '' : `
+      <div class="public-attachment-section mt-4">
+        <label data-i18n="attachment">${i18n[state.lang].attachment}</label>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+          ${attachmentList.map(att => `
+            <div class="public-download-card" style="padding:10px 15px;">
+              <i class="fa-solid fa-file-pdf"></i>
+              <div class="public-download-info" style="margin-left:12px;">
+                <h4 style="font-size:13px;">${att.name}</h4>
+                <p style="font-size:11px;">${att.size}</p>
+              </div>
+              <button class="btn btn-primary btn-sm simulate-download-btn" data-filename="${att.name}" style="padding: 4px 8px; font-size: 11px;">
+                <i class="fa-solid fa-download"></i> ${i18n[state.lang].download}
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+
+    $('#details-content-box').empty().append(`
+      <div class="public-detail-grid">
+        <div class="public-detail-item">
+          <label data-i18n="created_date">${i18n[state.lang].created_date}</label>
+          <span>${req.date}</span>
+        </div>
+        <div class="public-detail-item">
+          <label data-i18n="status">${i18n[state.lang].status}</label>
+          <span><span class="badge ${statusBadgeClass}">${statusText}</span></span>
+        </div>
+        <div class="public-detail-item">
+          <label data-i18n="act_type">${i18n[state.lang].act_type}</label>
+          <span><strong>${i18n[state.lang][req.type] || req.type}</strong></span>
+        </div>
+        <div class="public-detail-item">
+          <label data-i18n="project">${i18n[state.lang].project}</label>
+          <span>${projectName}</span>
+        </div>
+        <div class="public-detail-item">
+          <label data-i18n="sender">${i18n[state.lang].sender}</label>
+          <span>${req.salesName}</span>
+        </div>
+        <div class="public-detail-item">
+          <label data-i18n="assigned_to">${i18n[state.lang].assigned_to}</label>
+          <span>${agentName}</span>
+        </div>
+      </div>
+
+      <div class="public-description mt-4">
+        <label style="font-weight:600; display:block; margin-bottom:8px; font-size:13px; color:var(--text-light); text-transform:uppercase;">
+          ${i18n[state.lang].details}
+        </label>
+        <p>${req.details}</p>
+      </div>
+
+      ${attachmentHtml}
+
+      <div class="form-group mt-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
+        <label for="change-req-status" data-i18n="status">Update Status</label>
+        <select id="change-req-status" class="form-control">
+          <option value="In process" ${req.status === 'In process' ? 'selected' : ''} data-i18n="status_in_process">${i18n[state.lang].status_in_process}</option>
+          <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''} data-i18n="status_pending">${i18n[state.lang].status_pending}</option>
+          <option value="Done" ${req.status === 'Done' ? 'selected' : ''} data-i18n="status_done">${i18n[state.lang].status_done}</option>
+        </select>
+      </div>
+    `);
+
+    $('#details-modal-footer').empty().append(`
+      <button class="btn btn-secondary modal-close-btn" data-i18n="close">${i18n[state.lang].close}</button>
+      <button class="btn btn-primary" id="btn-save-agency-status" data-id="${req.id}">
+        <i class="fa-solid fa-save"></i> ${i18n[state.lang].save}
+      </button>
+    `);
+
+    openModal('modal-view-details');
   }
 
   // --- Event Bindings Manager ---
@@ -996,6 +1092,9 @@ $(document).ready(function() {
       const saved = db.saveRequest(requestData);
       closeModal('modal-request');
 
+      // Clear the bell cleared state for the agency so they receive a notification
+      sessionStorage.removeItem('property_bell_cleared_' + agencyId);
+
       // Refresh listings
       if (state.currentRoute === '#sale-overview') {
         renderSaleDashboard();
@@ -1046,103 +1145,23 @@ $(document).ready(function() {
       showToast('success_save');
     });
 
+    // Email share — opens mailto: with pre-filled subject and body
+    $('#btn-share-email').click(function() {
+      const url = $(this).attr('data-url');
+      const reqId = $(this).attr('data-id');
+      const subject = encodeURIComponent(i18n[state.lang].share_email_subject + ' [' + reqId + ']');
+      const body = encodeURIComponent(i18n[state.lang].share_email_body + '\n\n' + url);
+      window.location.href = 'mailto:?subject=' + subject + '&body=' + body;
+      showToast('success_save');
+    });
+
     // --- Agency Portal: Manage Requests & Inbox ---
     $('#agency-request-search').on('keyup', renderAgencyRequests);
     $('#agency-filter-status').on('change', renderAgencyRequests);
 
     // View details on incoming requests
     $(document).on('click', '.view-agency-details-btn', function() {
-      const id = $(this).attr('data-id');
-      const req = db.getRequest(id);
-      if (!req) return;
-
-      const project = db.getProject(req.projectId);
-      const projectName = project ? (state.lang === 'th' ? project.name_th : project.name_en) : '';
-      const agent = db.getAgent(req.agentId);
-      const agentName = agent ? agent.name : '-';
-
-      const statusBadgeClass = req.status === 'In process' ? 'badge-process' : (req.status === 'Pending' ? 'badge-pending' : 'badge-done');
-      const statusText = req.status === 'In process' ? i18n[state.lang].status_in_process : (req.status === 'Pending' ? i18n[state.lang].status_pending : i18n[state.lang].status_done);
-
-      // Render Modal Body Details
-      $('#details-content-box').empty().append(`
-        <div class="public-detail-grid">
-          <div class="public-detail-item">
-            <label data-i18n="created_date">${i18n[state.lang].created_date}</label>
-            <span>${req.date}</span>
-          </div>
-          <div class="public-detail-item">
-            <label data-i18n="status">${i18n[state.lang].status}</label>
-            <span><span class="badge ${statusBadgeClass}">${statusText}</span></span>
-          </div>
-          <div class="public-detail-item">
-            <label data-i18n="act_type">${i18n[state.lang].act_type}</label>
-            <span><strong>${i18n[state.lang][req.type] || req.type}</strong></span>
-          </div>
-          <div class="public-detail-item">
-            <label data-i18n="project">${i18n[state.lang].project}</label>
-            <span>${projectName}</span>
-          </div>
-          <div class="public-detail-item">
-            <label data-i18n="sender">${i18n[state.lang].sender}</label>
-            <span>${req.salesName}</span>
-          </div>
-          <div class="public-detail-item">
-            <label data-i18n="assigned_to">${i18n[state.lang].assigned_to}</label>
-            <span>${agentName}</span>
-          </div>
-        </div>
-
-        <div class="public-description mt-4">
-          <label style="font-weight:600; display:block; margin-bottom:8px; font-size:13px; color:var(--text-light); text-transform:uppercase;">
-            ${i18n[state.lang].details}
-          </label>
-          <p>${req.details}</p>
-        </div>
-
-        ${(() => {
-          const list = req.attachments || (req.attachment ? [req.attachment] : []);
-          if (list.length === 0) return '';
-          return `
-          <div class="public-attachment-section mt-4">
-            <label data-i18n="attachment">${i18n[state.lang].attachment}</label>
-            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
-              ${list.map(att => `
-                <div class="public-download-card" style="padding:10px 15px;">
-                  <i class="fa-solid fa-file-pdf"></i>
-                  <div class="public-download-info" style="margin-left:12px;">
-                    <h4 style="font-size:13px;">${att.name}</h4>
-                    <p style="font-size:11px;">${att.size}</p>
-                  </div>
-                  <button class="btn btn-primary btn-sm simulate-download-btn" data-filename="${att.name}" style="padding: 4px 8px; font-size: 11px;">
-                    <i class="fa-solid fa-download"></i> ${i18n[state.lang].download}
-                  </button>
-                </div>
-              `).join('')}
-            </div>
-          </div>`;
-        })()}
-
-        <!-- Status Change Dropdown inside Agency workspace detail modal -->
-        <div class="form-group mt-4" style="border-top: 1px solid var(--border-color); padding-top: 20px;">
-          <label for="change-req-status" data-i18n="status">Update Status</label>
-          <select id="change-req-status" class="form-control">
-            <option value="In process" ${req.status === 'In process' ? 'selected' : ''} data-i18n="status_in_process">${i18n[state.lang].status_in_process}</option>
-            <option value="Pending" ${req.status === 'Pending' ? 'selected' : ''} data-i18n="status_pending">${i18n[state.lang].status_pending}</option>
-            <option value="Done" ${req.status === 'Done' ? 'selected' : ''} data-i18n="status_done">${i18n[state.lang].status_done}</option>
-          </select>
-        </div>
-      `);
-
-      // Add status change handlers in Footer
-      $('#details-modal-footer').empty().append(`
-        <button class="btn btn-secondary modal-close-btn" data-i18n="close">${i18n[state.lang].close}</button>
-        <button class="btn btn-primary" id="btn-save-agency-status" data-id="${req.id}">
-          <i class="fa-solid fa-save"></i> ${i18n[state.lang].save}
-        </button>
-      `);
-
-      openModal('modal-view-details');
+      openRequestDetailModal($(this).attr('data-id'));
     });
 
     // Save status change inside detail modal
@@ -1247,6 +1266,81 @@ $(document).ready(function() {
       showToast('success_save');
     });
 
+    // --- Agency Notification Bell dropdown and clearing actions ---
+    $('#agency-bell').click(function(e) {
+      // Ignore clicks that originate from inside the dropdown itself (items, clear btn)
+      if ($(e.target).closest('#agency-bell-dropdown').length) return;
+      e.stopPropagation();
+      $('#agency-bell-dropdown').toggle();
+    });
+
+    $(document).click(function() {
+      $('#agency-bell-dropdown').hide();
+    });
+
+    $('#btn-clear-bell').click(function(e) {
+      e.stopPropagation();
+      $('#agency-bell-badge').fadeOut();
+      $('#agency-bell-dropdown').fadeOut();
+      sessionStorage.setItem('property_bell_cleared_' + state.currentUser.agencyId, 'true');
+    });
+
+    // Clicking on a bell notification item navigates to Incoming Requests and opens the detail modal
+    $(document).on('click', '.bell-item', function(e) {
+      e.stopPropagation();
+      const reqId = $(this).attr('data-id');
+      $('#agency-bell-dropdown').fadeOut();
+      window.location.hash = '#agency-requests';
+      setTimeout(() => openRequestDetailModal(reqId), 150);
+    });
+
+  }
+
+  // --- Notification Bell Badge & Dropdown update helper ---
+  function updateNotificationBell() {
+    if (!state.currentUser || state.currentUser.role !== 'agency') return;
+
+    const currentAgencyId = state.currentUser.agencyId;
+    // Filter requests sent to this agency that are in progress or pending
+    const requests = db.getRequests({ agencyId: currentAgencyId });
+    const unreadRequests = requests.filter(r => r.status === 'In process' || r.status === 'Pending');
+
+    const bellCleared = sessionStorage.getItem('property_bell_cleared_' + currentAgencyId) === 'true';
+    const badge = $('#agency-bell-badge');
+
+    if (unreadRequests.length > 0 && !bellCleared) {
+      badge.text(unreadRequests.length).fadeIn().css('display', 'flex');
+    } else {
+      badge.hide();
+    }
+
+    const container = $('#agency-bell-items');
+    container.empty();
+
+    if (unreadRequests.length === 0) {
+      container.append(`
+        <div style="padding: 20px; text-align: center; color: var(--text-light); font-size: 12px;">
+          <i class="fa-regular fa-bell-slash" style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+          No new notifications
+        </div>
+      `);
+      return;
+    }
+
+    // Render up to 5 unread/active requests inside bell dropdown
+    unreadRequests.slice(0, 5).forEach(req => {
+      const project = db.getProject(req.projectId);
+      const projectName = project ? (state.lang === 'th' ? project.name_th : project.name_en) : '';
+      const typeText = i18n[state.lang][req.type] || req.type;
+
+      container.append(`
+        <div class="bell-item" data-id="${req.id}">
+          <div class="bell-item-title">${typeText}</div>
+          <div class="bell-item-desc">${projectName} - ${req.salesName}</div>
+          <div class="bell-item-date">${req.date}</div>
+        </div>
+      `);
+    });
   }
 
   // Run initialization
